@@ -8,8 +8,8 @@ import os
 BASE_DIR = Path(__file__).resolve().parent
 
 CERT_DIR = BASE_DIR / "certs"
-TRACE_DIR = BASE_DIR / "traces"
-RESULT_DIR = BASE_DIR / "results"
+TRACE_DIR = BASE_DIR /Dataset/ "traces"
+RESULT_DIR = BASE_DIR /Dataset/ "results"
 
 # =====================================================
 # Server
