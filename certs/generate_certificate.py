@@ -1,13 +1,11 @@
 import subprocess
 from pathlib import Path
-import os
 
-CODE_DIR = Path(__file__).resolve().parent
-CERT_DIR = CODE_DIR / "certs"
+CERT_DIR = Path(__file__).resolve().parent
 CERT_DIR.mkdir(parents=True, exist_ok=True)
 
-OPENSSL = os.environ.get("OPENSSL_BIN", "/usr/local/bin/openssl")
-PROVIDER_PATH = os.environ.get("OPENSSL_MODULES", "/usr/local/lib64/ossl-modules")
+OPENSSL = "/usr/local/bin/openssl"
+PROVIDER_PATH = "/usr/local/lib64/ossl-modules"
 OQS_PROVIDERS = ["-provider-path", PROVIDER_PATH, "-provider", "oqsprovider", "-provider", "default"]
 
 configs = [
