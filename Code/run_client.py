@@ -88,7 +88,7 @@ def run_experiment(args):
             "error_stage": meas.get("stage", "") if not meas.get("success") else "",
             "total_packets": "", "tcp_segments": "", "retransmissions": "", 
             "handshake_bytes": "", "handshake_flights": "",
-            "pcap_file": str(pcap_path.relative_to(BASE_DIR))
+            "pcap_file": pcap_path.relative_to(TRACE_DIR.parent).as_posix()
         }
         
         with open(csv_path, "a", newline="") as f:
