@@ -6,10 +6,12 @@ import os
 # =====================================================
 
 BASE_DIR = Path(__file__).resolve().parent
+REPO_ROOT = BASE_DIR.parent
 
-CERT_DIR = BASE_DIR / "certs"
-TRACE_DIR = BASE_DIR /Dataset/ "traces"
-RESULT_DIR = BASE_DIR /Dataset/ "results"
+CERT_DIR = REPO_ROOT / "certs"
+DATASET_DIR = REPO_ROOT / "Dataset"
+TRACE_DIR = DATASET_DIR / "traces"
+RESULT_DIR = DATASET_DIR / "results"
 
 # =====================================================
 # Server
