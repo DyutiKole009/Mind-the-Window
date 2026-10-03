@@ -29,6 +29,9 @@ results.csv
 ```text
 Mind-the-Window/
 │
+├── certs/
+│   └── generate_certificate.py
+│
 ├── Code/
 │   ├── client/
 │   │   ├── Makefile
@@ -51,12 +54,13 @@ Mind-the-Window/
 └── README.md
 ```
 
-> **Generated files:** `Code/certs/`, `Code/traces/`, and `Code/results/` are runtime/generated directories. The `certs` directory contains locally generated certificates and private keys and should not be committed to the repository.
+> **Generated files:** `Code/traces/`, and `Code/results/` are runtime/generated directories. The `certs/` directory contains `generate_certificate.py`. Upon running this script, the `certs/` directory will locally store generated certificates/private keys, which should not be committed to the repository.
 
 ### Main Components
 
 | Component | Purpose |
 |---|---|
+| `certs/generate_certificate.py` | Generates self-signed TLS certificates and keys for all configurations |
 | `Code/config.py` | Central configuration for paths, server, OpenSSL, TLS groups, certificates, and runtime libraries |
 | `Code/run_server.py` | Starts the OpenSSL TLS 1.3 test server |
 | `Code/run_client.py` | Runs repeated TLS handshakes and automatically captures traffic using `tcpdump` |
@@ -65,7 +69,7 @@ Mind-the-Window/
 | `Code/batch_run.sh` | Runs multiple 100-iteration experiment sessions |
 | `analysis/pcap_parse.py` | Processes captured PCAPs using `tshark` and generates transport/TLS metrics |
 | `analysis/Analysis_Final.ipynb` | Notebook for analysis and graphical interpretation of the experimental results |
-| `Code/certs/` | Locally generated TLS certificates and private keys; not tracked by Git |
+| `certs/` | Contains certificate generation script and locally generated TLS certificates/keys |
 | `Code/traces/` | Stores captured PCAP traces |
 | `Code/results/` | Stores experiment metadata and analysis results |
 
@@ -135,14 +139,49 @@ The corresponding private keys are also required.
 TLS certificates and private keys are **generated locally during setup** and stored in:
 
 ```text
-Code/certs/
+certs/
 ```
 
-This directory is intentionally excluded from version control because it contains generated credentials/private keys.
+This directory is intentionally excluded from version control because it contains generated credentials and private keys.
 
-The server expects the certificate and key corresponding to the selected TLS configuration to be present before the experiment is started.
+The server expects the certificate and private key corresponding to the selected TLS configuration to be present before the experiment is started.
 
-> The repository does not rely on committed certificate/private-key files.
+### Required Certificate and Key Files
+
+| Configuration | Certificate File | Private Key File | Key Algorithm | Signature Scheme |
+|---|---|---|---|---|
+| `classical` | `classical.crt` | `classical.key` | `ec` (`prime256v1`) | ECDSA with SHA-256 |
+| `mlkem_mldsa` | `mldsa.crt` | `mldsa.key` | `mldsa65` (or `dilithium3`) | ML-DSA-65 |
+| `mlkem_slhdsa` | `slhdsa.crt` | `slhdsa.key` | `slhdsa128s` (or `sphincsshake128s`) | SLH-DSA-128s |
+| `hybrid` | `hybrid.crt` | `hybrid.key` | `ec` (`prime256v1`) | ECDSA with SHA-256 |
+
+### Certificate Generation
+
+Generate all required certificate and key pairs using the provided script:
+
+```bash
+python3 certs/generate_certificate.py
+```
+
+This script creates self-signed X.509 certificates and private keys inside the `certs/` directory for each of the four TLS configurations. For post-quantum algorithms, it uses the standardized NIST names (`mldsa65`, `slhdsa128s`) with automated fallback to legacy candidate names (`dilithium3`, `sphincsshake128s`) for older OQS provider builds.
+
+### Certificate Validation
+
+To validate that each generated certificate is properly structured, signed, and contains the expected public key algorithm:
+
+```bash
+# Validate Classical Certificate
+/usr/local/bin/openssl x509 -in certs/classical.crt -text -noout | grep -E "(Signature Algorithm|Public Key Algorithm|Subject:)"
+
+# Validate ML-DSA Certificate
+/usr/local/bin/openssl x509 -provider-path /usr/local/lib64/ossl-modules -provider oqsprovider -provider default -in certs/mldsa.crt -text -noout | grep -E "(Signature Algorithm|Public Key Algorithm|Subject:)"
+
+# Validate SLH-DSA Certificate
+/usr/local/bin/openssl x509 -provider-path /usr/local/lib64/ossl-modules -provider oqsprovider -provider default -in certs/slhdsa.crt -text -noout | grep -E "(Signature Algorithm|Public Key Algorithm|Subject:)"
+
+# Validate Hybrid Certificate
+/usr/local/bin/openssl x509 -in certs/hybrid.crt -text -noout | grep -E "(Signature Algorithm|Public Key Algorithm|Subject:)"
+```
 
 ---
 
@@ -635,8 +674,10 @@ tshark --version
 Verify that the locally generated certificate and private key exist under:
 
 ```text
-Code/certs/
+certs/
 ```
+
+Run `python3 certs/generate_certificate.py` to generate missing certificates.
 
 ### OQS provider not found
 
