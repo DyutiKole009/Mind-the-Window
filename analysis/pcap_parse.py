@@ -20,8 +20,11 @@ import sys
 import math
 from pathlib import Path
 
+REPO_ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(REPO_ROOT / "Code"))
+
 # Import variables from config.py
-from config import BASE_DIR, RESULT_DIR
+from config import BASE_DIR, RESULT_DIR, TRACE_DIR
 
 
 def check_tshark_installed():
@@ -280,7 +283,9 @@ def process_session(date_str: str, session_name: str):
             
             for i, row in enumerate(rows):
                 print(f"\rParsing PCAP {i+1}/{len(rows)}...", end="", flush=True)
-                pcap_path = BASE_DIR / row.get("pcap_file", "")
+                pcap_path = TRACE_DIR.parent / row.get("pcap_file", "")
+                if not pcap_path.exists():
+                    pcap_path = BASE_DIR / row.get("pcap_file", "")
                 
                 if row.get("success") in ["True", "true", "1"] and pcap_path.exists():
                     metrics = analyze_pcap(pcap_path, algo_config=network_name)
